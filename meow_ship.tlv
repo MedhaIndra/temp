@@ -27,7 +27,7 @@
    // Include the showdown framework.
    m4_include_lib(https://raw.githubusercontent.com/rweda/showdown-2025-space-battle/a211a27da91c5dda590feac280f067096c96e721/showdown_lib.tlv)
 
-   module team_YOUR_GITHUB_ID (
+   module team_medha (
       // Inputs:
       input logic clk, input logic reset,
       input logic signed [7:0] x [m5_SHIP_RANGE], input logic signed [7:0] y [m5_SHIP_RANGE],   // Positions of your ships, as affected by last cycle's acceleration.
@@ -156,7 +156,7 @@ endmodule
 
 // [Optional]
 // Visualization of your logic for each ship.
-\TLV team_YOUR_GITHUB_ID_viz(/_top, _team_num)
+\TLV team_medha_viz(/_top, _team_num)
    m5+io_viz(/_top, _team_num)   /// Visualization of your IOs.
    \viz_js
       m5_DefaultTeamVizBoxAndWhere()
@@ -164,7 +164,7 @@ endmodule
       render() {
          // ... draw using fabric.js and signal values. (See VIZ docs under "LEARN" menu.)
          // For example...
-         const destroyed = (this.sigVal("team_YOUR_GITHUB_ID.destroyed").asInt() >> this.getIndex("ship")) & 1;
+         const destroyed = (this.sigVal("team_medha.destroyed").asInt() >> this.getIndex("ship")) & 1;
          return [
             new fabric.Text(destroyed ? "I''m dead! ☹️" : "I''m alive! 😊", {
                left: 10, top: 50, originY: "center", fill: "black", fontSize: 10,
@@ -173,8 +173,8 @@ endmodule
       },
 
 
-\TLV team_YOUR_GITHUB_ID(/_top)
-   m5+verilog_wrapper(/_top, YOUR_GITHUB_ID)
+\TLV team_medha(/_top)
+   m5+verilog_wrapper(/_top, medha)
 
 
 
@@ -189,7 +189,7 @@ endmodule
    // Your team as the first player. Provide:
    //   - your GitHub ID, (as in your \TLV team_* macro, above)
    //   - your team name--anything you like (that isn't crude or disrespectful)
-   ///m5_team(YOUR_GITHUB_ID, YOUR_TEAM_NAME)
+   ///m5_team(medha, MEOW)
    
    // Choose your opponent.
    // Note that inactive teams must be commented with "///", not "//", to prevent M5 macro evaluation.
