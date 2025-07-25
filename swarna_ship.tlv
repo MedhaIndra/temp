@@ -1,7 +1,7 @@
 \m5_TLV_version 1d: tl-x.org
 \m5
    / A competition template for:
-   / my logic
+   /
    / /----------------------------------------------------------------------------\
    / | The First Annual Makerchip ASIC Design Showdown, Summer 2025, Space Battle |
    / \----------------------------------------------------------------------------/
@@ -40,156 +40,146 @@
          output logic [1:0] fire_dir [m5_SHIP_RANGE]   // Direction to fire (if firing). (For the first player: 0 = right, 1 = down, 2 = left, 3 = up)
       );
 
-     localparam signed [7:0] BORDER = 32;
+      // Parameters defining the valid ranges of input/output values can be found near the top of "showdown_lib.tlv".
+
+      // /------------------------------\
+      // | Your Verilog logic goes here |
+      // \------------------------------/
+
+      // E.g.:
+      localparam signed [7:0] BORDER = 32;
 localparam signed [7:0] MARGIN = 2;
-
-localparam FIRE_COST = 30;
-localparam CLOAK_COST = 15;
-localparam SHIELD_COST = 25;
-localparam BULLET_SPEED = 9;
-localparam BULLET_TIME = 6;
-localparam BULLET_RANGE = BULLET_SPEED * BULLET_TIME; // 45 units
 localparam [15:0] FIRE_RANGE_SQ = 2500;
+localparam FIRE_COST   = 30;
+localparam SHIELD_COST = 25;
+localparam CLOAK_COST  = 15;
 
-logic signed [7:0] enemy_x_prev [2:0];
-logic signed [7:0] enemy_y_prev [2:0];
-logic [1:0] enemy_vx_sign [2:0];
-logic [1:0] enemy_vy_sign [2:0];
+// ====== State to track previous enemy positions ======
+logic signed [7:0] prev_ex [m5_SHIP_RANGE], prev_ey [m5_SHIP_RANGE];
+logic [1:0] prev_vx_sign [m5_SHIP_RANGE], prev_vy_sign [m5_SHIP_RANGE];
+      
+function [7:0] abs;
+  input signed [7:0] val;
+  begin
+    abs = (val < 0) ? -val : val;
+  end
+endfunction
 
-integer j;
+
 always_ff @(posedge clk) begin
-    if (reset) begin
-        for (j = 0; j < 3; j++) begin
-            enemy_x_prev[j] <= 0;
-            enemy_y_prev[j] <= 0;
-            enemy_vx_sign[j] <= 2;
-            enemy_vy_sign[j] <= 2;
-        end
-    end else begin
-        for (j = 0; j < 3; j++) begin
-            logic signed [7:0] vx = enemy_x_p[j] - enemy_x_prev[j];
-            logic signed [7:0] vy = enemy_y_p[j] - enemy_y_prev[j];
-            enemy_vx_sign[j] <= (vx > 0) ? 1 : (vx < 0) ? 0 : 2;
-            enemy_vy_sign[j] <= (vy > 0) ? 1 : (vy < 0) ? 0 : 2;
-            enemy_x_prev[j] <= enemy_x_p[j];
-            enemy_y_prev[j] <= enemy_y_p[j];
-        end
+  if (reset) begin
+    for (integer j = 0; j < 3; j++) begin
+      prev_ex[j]       <= 0;
+      prev_ey[j]       <= 0;
+      prev_vx_sign[j]  <= 2;
+      prev_vy_sign[j]  <= 2;
     end
+  end else begin
+    for (integer j = 0; j < 3; j++) begin
+      logic signed [7:0] vx = enemy_x_p[j] - prev_ex[j];
+      logic signed [7:0] vy = enemy_y_p[j] - prev_ey[j];
+      prev_vx_sign[j] <= (vx > 0) ? 1 : (vx <= 0) ? 0 : 2;
+      prev_vy_sign[j] <= (vy > 0) ? 1 : (vy <= 0) ? 0 : 2;
+      prev_ex[j] <= enemy_x_p[j];
+      prev_ey[j] <= enemy_y_p[j];
+    end
+  end
 end
 
+// ====== Stateless helpers ======
+function logic is_approaching;
+  input signed [7:0] dx_now, dy_now, dx_prev, dy_prev;
+  begin
+    is_approaching =
+      ((dx_now*dx_now + dy_now*dy_now) <
+       (dx_prev*dx_prev + dy_prev*dy_prev));
+  end
+endfunction
+
+function logic is_dir_approach;
+  input signed [7:0] dx, dy;
+  input [1:0] vx_s, vy_s;
+  begin
+    is_dir_approach =
+      ((vx_s == 1 && dx >  0) ||
+       (vx_s == 0 && dx <  0) ||
+       (vx_s == 2 && dx != 0)) ||
+      ((vy_s == 1 && dy >  0) ||
+       (vy_s == 0 && dy <  0) ||
+       (vy_s == 2 && dy != 0));
+  end
+endfunction
+
+// ====== Per-ship decision logic ======
 genvar i;
 generate
-for (i = 0; i < 3; i++) begin : ship_logic
+  for (i = 0; i < 3; i++) begin : SHIP
+    // Calculate deltas: current + previous
+    wire signed [7:0] dx0 = enemy_x_p[0] - x[i], dy0 = enemy_y_p[0] - y[i];
+    wire signed [7:0] dx1 = enemy_x_p[1] - x[i], dy1 = enemy_y_p[1] - y[i];
+    wire signed [7:0] dx2 = enemy_x_p[2] - x[i], dy2 = enemy_y_p[2] - y[i];
+    
+    wire signed [7:0] dx0p = prev_ex[0] - x[i], dy0p = prev_ey[0] - y[i];
+    wire signed [7:0] dx1p = prev_ex[1] - x[i], dy1p = prev_ey[1] - y[i];
+    wire signed [7:0] dx2p = prev_ex[2] - x[i], dy2p = prev_ey[2] - y[i];
 
-    wire signed [7:0] dx0_now = enemy_x_p[0] - x[i];
-    wire signed [7:0] dy0_now = enemy_y_p[0] - y[i];
-    wire signed [7:0] dx1_now = enemy_x_p[1] - x[i];
-    wire signed [7:0] dy1_now = enemy_y_p[1] - y[i];
-    wire signed [7:0] dx2_now = enemy_x_p[2] - x[i];
-    wire signed [7:0] dy2_now = enemy_y_p[2] - y[i];
+    wire [15:0] dsq0 = dx0*dx0 + dy0*dy0;
+    wire [15:0] dsq1 = dx1*dx1 + dy1*dy1;
+    wire [15:0] dsq2 = dx2*dx2 + dy2*dy2;
 
-    wire signed [7:0] dx0_prev = enemy_x_prev[0] - x[i];
-    wire signed [7:0] dy0_prev = enemy_y_prev[0] - y[i];
-    wire signed [7:0] dx1_prev = enemy_x_prev[1] - x[i];
-    wire signed [7:0] dy1_prev = enemy_y_prev[1] - y[i];
-    wire signed [7:0] dx2_prev = enemy_x_prev[2] - x[i];
-    wire signed [7:0] dy2_prev = enemy_y_prev[2] - y[i];
+    wire ok0 = !enemy_destroyed[0] && !enemy_cloaked[0];
+    wire ok1 = !enemy_destroyed[1] && !enemy_cloaked[1];
+    wire ok2 = !enemy_destroyed[2] && !enemy_cloaked[2];
 
-    wire signed [7:0] vx0 = enemy_x_p[0] - enemy_x_prev[0];
-    wire signed [7:0] vy0 = enemy_y_p[0] - enemy_y_prev[0];
-    wire signed [7:0] vx1 = enemy_x_p[1] - enemy_x_prev[1];
-    wire signed [7:0] vy1 = enemy_y_p[1] - enemy_y_prev[1];
-    wire signed [7:0] vx2 = enemy_x_p[2] - enemy_x_prev[2];
-    wire signed [7:0] vy2 = enemy_y_p[2] - enemy_y_prev[2];
+    // Should we fire on that ship?
+    wire fire0 = ok0 && (is_approaching(dx0,dy0,dx0p,dy0p) || is_dir_approach(dx0,dy0, prev_vx_sign[0], prev_vy_sign[0]) || dsq0 <= FIRE_RANGE_SQ);
+    wire fire1 = ok1 && (is_approaching(dx1,dy1,dx1p,dy1p) || is_dir_approach(dx1,dy1, prev_vx_sign[1], prev_vy_sign[1]) || dsq1 <= FIRE_RANGE_SQ);
+    wire fire2 = ok2 && (is_approaching(dx2,dy2,dx2p,dy2p) || is_dir_approach(dx2,dy2, prev_vx_sign[2], prev_vy_sign[2]) || dsq2 <= FIRE_RANGE_SQ);
 
-    wire [7:0] abs_dx0 = dx0_now[7] ? -dx0_now : dx0_now;
-    wire [7:0] abs_dy0 = dy0_now[7] ? -dy0_now : dy0_now;
-    wire [7:0] abs_dx1 = dx1_now[7] ? -dx1_now : dx1_now;
-    wire [7:0] abs_dy1 = dy1_now[7] ? -dy1_now : dy1_now;
-    wire [7:0] abs_dx2 = dx2_now[7] ? -dx2_now : dx2_now;
-    wire [7:0] abs_dy2 = dy2_now[7] ? -dy2_now : dy2_now;
+    // Choose nearest threat
+    wire [15:0] s0 = fire0 ? dsq0 : 16'hFFFF;
+    wire [15:0] s1 = fire1 ? dsq1 : 16'hFFFF;
+    wire [15:0] s2 = fire2 ? dsq2 : 16'hFFFF;
 
-    wire [8:0] sum0 = abs_dx0 + abs_dy0;
-    wire [8:0] sum1 = abs_dx1 + abs_dy1;
-    wire [8:0] sum2 = abs_dx2 + abs_dy2;
+    wire [1:0] target =
+      (s0 <= s1 && s0 <= s2) ? 2'd0 :
+      (s1 <= s2)              ? 2'd1 : 2'd2;
 
-   // Unsigned squared distance
-    wire [15:0] dist_sq0 = dx0_now * dx0_now + dy0_now * dy0_now;
-    wire [15:0] dist_sq1 = dx1_now * dx1_now + dy1_now * dy1_now;
-    wire [15:0] dist_sq2 = dx2_now * dx2_now + dy2_now * dy2_now;
+    wire signed [7:0] dxf = (target==0 ? dx0 : target==1 ? dx1 : dx2);
+    wire signed [7:0] dyf = (target==0 ? dy0 : target==1 ? dy1 : dy2);
 
-
-    function is_approaching;
-        input signed [7:0] dx_now, dy_now, dx_prev, dy_prev;
-        begin
-            is_approaching =
-               ((dx_now*dx_now + dy_now*dy_now) < (dx_prev*dx_prev + dy_prev*dy_prev));
-        end
-    endfunction
-
-    wire valid0 = !enemy_destroyed[0] && !enemy_cloaked[0];
-    wire valid1 = !enemy_destroyed[1] && !enemy_cloaked[1];
-    wire valid2 = !enemy_destroyed[2] && !enemy_cloaked[2];
-
-    wire fire_on_0 = valid0 && ((is_approaching(dx0_now, dy0_now, dx0_prev, dy0_prev))  || (is_enemy_approaching_dir(dx0_now, dy0_now, enemy_vx_sign[0], enemy_vy_sign[0]))) ;
-    wire fire_on_1 = valid1 && ((is_approaching(dx1_now, dy1_now, dx1_prev, dy1_prev))  || (is_enemy_approaching_dir(dx1_now, dy1_now, enemy_vx_sign[1], enemy_vy_sign[1]))) ;
-    wire fire_on_2 = valid2 && ((is_approaching(dx2_now, dy2_now, dx2_prev, dy2_prev))  || (is_enemy_approaching_dir(dx2_now, dy2_now, enemy_vx_sign[2], enemy_vy_sign[2]))) ;
-
-
-    wire [1:0] target = fire_on_0 ? 2'd0 : fire_on_1 ? 2'd1 : 2'd2;
+    assign attempt_fire[i]   = (s0 < 16'hFFFF || s1 < 16'hFFFF || s2 < 16'hFFFF) && (energy[i] >= FIRE_COST);
     wire signed [7:0] dx_fire = enemy_x_p[target] - x[i];
     wire signed [7:0] dy_fire = enemy_y_p[target] - y[i];
-
     assign fire_dir[i] = ( (dx_fire > dy_fire) && (dx_fire > -dy_fire) ) ? 2'd0 :
                          ( (dx_fire < dy_fire) && (dx_fire > -dy_fire) ) ? 2'd3 :
                          ( (dx_fire < dy_fire) && (dx_fire < -dy_fire) ) ? 2'd2 :
                                                                           2'd1 ;
+    assign attempt_shield[i] = ((is_approaching(dx0,dy0,dx0p,dy0p) || is_approaching(dx1,dy1,dx1p,dy1p) || is_approaching(dx2,dy2,dx2p,dy2p) || (dsq0 <= FIRE_RANGE_SQ) || (dsq1 <= FIRE_RANGE_SQ) || (dsq2 <= FIRE_RANGE_SQ) && energy[i] >= SHIELD_COST));
+    //assign attempt_shield[i] = (((dsq0 <= FIRE_RANGE_SQ) || (dsq1 <= FIRE_RANGE_SQ) || (dsq2 <= FIRE_RANGE_SQ))  && (energy[i] >= SHIELD_COST));
+     //assign attempt_shield[i] = (((fire0) || (fire1) || (fire2) ) && (energy[i] >= SHIELD_COST ));
+     
+    // Cloak if enemy very close
+    //wire close0 = ok0 && ( (abs(dx0)+abs(dy0)) <= (BORDER / 4) );
+    //wire close1 = ok1 && ( (abs(dx1)+abs(dy1)) <= (BORDER / 4) );t
+    //wire close2 = ok2 && ( (abs(dx2)+abs(dy2)) <= (BORDER / 4) );
+    //assign attempt_cloak[i] = (close0 || close1 || close2) && (energy[i] >= CLOAK_COST);
 
-    function is_enemy_approaching_dir;
-        input signed [7:0] dx, dy;
-        input [1:0] vx_s, vy_s;
-        begin
-            is_enemy_approaching_dir =
-                ((vx_s == 1 && dx < 0) || (vx_s == 0 && dx > 0) || (vx_s == 2)) ||
-                ((vy_s == 1 && dy < 0) || (vy_s == 0 && dy > 0) || (vy_s == 2));
-        end
-    endfunction
-
-    wire enemy_close0 = valid0 && (sum0 <= (BULLET_RANGE + 6)) && is_enemy_approaching_dir(dx0_now, dy0_now, enemy_vx_sign[0], enemy_vy_sign[0]) ;
-    wire enemy_close1 = valid1 && (sum1 <= (BULLET_RANGE + 6)) && is_enemy_approaching_dir(dx1_now, dy1_now, enemy_vx_sign[1], enemy_vy_sign[1]) ;
-    wire enemy_close2 = valid2 && (sum2 <= (BULLET_RANGE + 6)) && is_enemy_approaching_dir(dx2_now, dy2_now, enemy_vx_sign[2], enemy_vy_sign[2]) ;
-
-    //assign attempt_cloak[i] = (energy[i] >= CLOAK_COST) && (enemy_close0 || enemy_close1 || enemy_close2);
-
-    wire very_close0 = valid0 && (sum0 <= 12);
-    wire very_close1 = valid1 && (sum1 <= 12);
-    wire very_close2 = valid2 && (sum2 <= 12);
-    
-    assign attempt_fire[i] =
-    (energy[i] >= FIRE_COST) &&
-    (fire_on_0 || fire_on_1 || fire_on_2) &&
-    !(very_close0 || very_close1 || very_close2);
-
-    //assign attempt_fire[i] = ((energy[i] >= FIRE_COST) && (fire_on_0 || fire_on_1 || fire_on_2));
-    //assign attempt_shield[i] =
-    //((energy[i] >= SHIELD_COST) && (enemy_close0 || enemy_close1 || enemy_close2)) ||
-      //((energy[i] >= SHIELD_COST) && (very_close0 || very_close1 || very_close2));
-    assign attempt_shield[i] = ((is_approaching(dx0_now, dy0_now, dx0_prev, dy0_prev) || is_approaching(dx1_now, dy1_now, dx1_prev, dy1_prev) || is_approaching(dx2_now, dy2_now, dx2_prev, dy2_prev) || (dist_sq0 <= FIRE_RANGE_SQ) || (dist_sq1 <= FIRE_RANGE_SQ) || (dist_sq2 <= FIRE_RANGE_SQ) && energy[i] >= SHIELD_COST));
-
+    // Medha's movement logic
     wire [15:0] best_dist_sq = 
-      (valid0 && (!valid1 || dist_sq0 <= dist_sq1) && (!valid2 || dist_sq0 <= dist_sq2)) ? dist_sq0 :
-      (valid1 && (!valid2 || dist_sq1 <= dist_sq2)) ? dist_sq1 :
-      (valid2) ? dist_sq2 : 16'hFFFF;
+      (ok0 && (!ok1 || dsq0 <= dsq1) && (!ok2 || dsq0 <= dsq2)) ? dsq0 :
+      (ok1 && (!ok2 || dsq1 <= dsq2)) ? dsq1 :
+      (ok2) ? dsq2 : 16'hFFFF;
 
     wire signed [7:0] mv_dx =
-      (valid0 && (dist_sq0 == best_dist_sq)) ? dx0_now :
-      (valid1 && (dist_sq1 == best_dist_sq)) ? dx1_now :
-      (valid2 && (dist_sq2 == best_dist_sq)) ? dx2_now : 8'd0;
+      (ok0 && (dsq0 == best_dist_sq)) ? dx0 :
+      (ok1 && (dsq1 == best_dist_sq)) ? dx1 :
+      (ok2 && (dsq2 == best_dist_sq)) ? dx2 : 8'd0;
 
     wire signed [7:0] mv_dy =
-      (valid0 && (dist_sq0 == best_dist_sq)) ? dy0_now :
-      (valid1 && (dist_sq1 == best_dist_sq)) ? dy1_now :
-      (valid2 && (dist_sq2 == best_dist_sq)) ? dy2_now : 8'd0;
+      (ok0 && (dsq0 == best_dist_sq)) ? dy0 :
+      (ok1 && (dsq1 == best_dist_sq)) ? dy1 :
+      (ok2 && (dsq2 == best_dist_sq)) ? dy2 : 8'd0;
 
     // Step size logic: move +/-2 or +/-1 depending on magnitude
     wire signed [2:0] step_x = 
@@ -200,16 +190,16 @@ for (i = 0; i < 3; i++) begin : ship_logic
     // Border logic: clamp as before
     assign x_a[i] = (x[i] >= BORDER - MARGIN) ? -2 :
                     (x[i] <= -BORDER + MARGIN) ? 2 :
-       				  (i==2) ? -step_x :
+                    (i==2) ? -step_x :
                     step_x;
 
     assign y_a[i] = (y[i] >= BORDER - MARGIN) ? -2 :
                     (y[i] <= -BORDER + MARGIN) ? 2 :
-       				  (i==2) ? -step_y :
+                    (i==2) ? -step_y :
                     step_y;
-
-end
+  end
 endgenerate
+
       endmodule
    '])
 
@@ -255,18 +245,17 @@ endgenerate
    //   - your team name--anything you like (that isn't crude or disrespectful)
    m5_team(YOUR_GITHUB_ID, YOUR_TEAM_NAME)
    
-   
    // Choose your opponent.
    // Note that inactive teams must be commented with "///", not "//", to prevent M5 macro evaluation.
-   ///m5_team(random, Random)
+   m5_team(random, Random)
    ///m5_team(sitting_duck, Sitting Duck)
-   m5_team(demo2, Test 1)
+   ///m5_team(demo1, Test 1)
    
    
    // Instantiate the Showdown environment.
    m5+showdown(/top, /secret)
    
-   *passed = /secret$passed || *cyc_cnt > 600;   // Defines max cycles, up to ~600.
+   *passed = /secret$passed || *cyc_cnt > 100;   // Defines max cycles, up to ~600.
    *failed = /secret$failed;
 \SV
    endmodule
