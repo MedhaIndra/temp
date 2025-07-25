@@ -24,8 +24,8 @@
                          /// Use "devel" or "demo". ("demo" will be used in competition.)
 
 
-   macro(team_swarna_ship_module, ['
-      module team_swarna_ship (
+   macro(team_bogus2_module, ['
+      module team_bogus2 (
          // Inputs:
          input logic clk, input logic reset,
          input logic signed [7:0] x [m5_SHIP_RANGE], input logic signed [7:0] y [m5_SHIP_RANGE],   // Positions of your ships, as affected by last cycle's acceleration.
@@ -206,7 +206,7 @@
 
 // [Optional]
 // Visualization of your logic for each ship.
-\TLV team_swarna_ship_viz(/_top, _team_num)
+\TLV team_bogus2_viz(/_top, _team_num)
    m5+io_viz(/_top, _team_num)   /// Visualization of your IOs.
    \viz_js
       m5_DefaultTeamVizBoxAndWhere()
@@ -214,7 +214,7 @@
       render() {
          // ... draw using fabric.js and signal values. (See VIZ docs under "LEARN" menu.)
          // For example...
-         const destroyed = (this.sigVal("team_swarna_ship.destroyed").asInt() >> this.getIndex("ship")) & 1;
+         const destroyed = (this.sigVal("team_bogus2.destroyed").asInt() >> this.getIndex("ship")) & 1;
          return [
             new fabric.Text(destroyed ? "I''m dead! ☹️" : "I''m alive! 😊", {
                left: 10, top: 50, originY: "center", fill: "black", fontSize: 10,
@@ -223,8 +223,8 @@
       },
 
 
-\TLV team_swarna_ship(/_top)
-   m5+verilog_wrapper(/_top, swarna_ship)
+\TLV team_bogus2(/_top)
+   m5+verilog_wrapper(/_top, bogus2)
 
 
 
@@ -239,7 +239,7 @@
    // Your team as the first player. Provide:
    //   - your GitHub ID, (as in your \TLV team_* macro, above)
    //   - your team name--anything you like (that isn't crude or disrespectful)
-   m5_team(swarna_ship, SWARNA)   
+   m5_team(bogus2, SWARNA)   
    
    // Choose your opponent.
    // Note that inactive teams must be commented with "///", not "//", to prevent M5 macro evaluation.
