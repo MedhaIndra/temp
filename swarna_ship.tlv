@@ -233,4 +233,30 @@
 // When this file is included as a library (for competition), this code is ignored.
 \SV
    m5_makerchip_module
+\TLV
+   // Enlist teams for battle.
+   
+   // Your team as the first player. Provide:
+   //   - your GitHub ID, (as in your \TLV team_* macro, above)
+   //   - your team name--anything you like (that isn't crude or disrespectful)
+   ///m5_team(swarna_ship, swarna_ship)
 
+   
+   
+   // Choose your opponent.
+   // Note that inactive teams must be commented with "///", not "//", to prevent M5 macro evaluation.
+   ///m5_team(random, Random)
+   ///m5_team(sitting_duck, Sitting Duck)
+   ///m5_team(demo2, Test 1)
+   
+   
+   // Instantiate the Showdown environment.
+   m5+showdown(/top, /secret)
+   
+   *passed = /secret$passed || *cyc_cnt > 600;   // Defines max cycles, up to ~600.
+   *failed = /secret$failed;
+\SV
+   endmodule
+   // Declare Verilog modules.
+   m4_ifdef(['m5']_team_\m5_get_ago(github_id, 0)_module, ['m5_call(team_\m5_get_ago(github_id, 0)_module)'])
+   m4_ifdef(['m5']_team_\m5_get_ago(github_id, 1)_module, ['m5_call(team_\m5_get_ago(github_id, 1)_module)'])
