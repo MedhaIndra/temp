@@ -249,7 +249,8 @@
    
    
    // Instantiate the Showdown environment.
-   //m5+showdown(/top, /secret)
+   m5+showdown(/top, /secret)
+
    
    *passed = /secret$passed || *cyc_cnt > 600;   // Defines max cycles, up to ~600.
    *failed = /secret$failed;
