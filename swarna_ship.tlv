@@ -239,7 +239,7 @@
    // Your team as the first player. Provide:
    //   - your GitHub ID, (as in your \TLV team_* macro, above)
    //   - your team name--anything you like (that isn't crude or disrespectful)
-   ///m5_team(swarna_ship, swarna_ship)
+   m5_team(swarna_ship, SWARNA)
 
    
    
