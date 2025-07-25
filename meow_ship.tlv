@@ -24,22 +24,8 @@
                          /// Use "devel" or "demo". ("demo" will be used in competition.)
 
 
-   macro(team_meow_ship_module, ['
-      module team_meow_ship (
-         // Inputs:
-         input logic clk, input logic reset,
-         input logic signed [7:0] x [m5_SHIP_RANGE], input logic signed [7:0] y [m5_SHIP_RANGE],   // Positions of your ships, as affected by last cycle's acceleration.
-         input logic [7:0] energy [m5_SHIP_RANGE],   // The energy supply of each ship, as affected by last cycle's actions.
-         input logic [m5_SHIP_RANGE] destroyed,   // Asserted if and when the ships are destroyed.
-         input logic signed [7:0] enemy_x_p [m5_SHIP_RANGE], input logic signed [7:0] enemy_y_p [m5_SHIP_RANGE],   // Positions of enemy ships as affected by their acceleration last cycle.
-         input logic [m5_SHIP_RANGE] enemy_cloaked,   // Whether the enemy ships are cloaked, in which case their enemy_x_p and enemy_y_p will not update.
-         input logic [m5_SHIP_RANGE] enemy_destroyed, // Whether the enemy ships have been destroyed.
-         // Outputs:
-         output logic signed [3:0] x_a [m5_SHIP_RANGE], output logic signed [3:0] y_a [m5_SHIP_RANGE],  // Attempted acceleration for each of your ships; capped by max_acceleration (see showdown_lib.tlv).
-         output logic [m5_SHIP_RANGE] attempt_fire, output logic [m5_SHIP_RANGE] attempt_shield, output logic [m5_SHIP_RANGE] attempt_cloak,  // Attempted actions for each of your ships.
-         output logic [1:0] fire_dir [m5_SHIP_RANGE]   // Direction to fire (if firing). (For the first player: 0 = right, 1 = down, 2 = left, 3 = up)
-      );
-
+   macro(team_bogus1_module, ['
+      
       // Parameters defining the valid ranges of input/output values can be found near the top of "showdown_lib.tlv".
 
          localparam signed [7:0] BORDER = 32;
@@ -150,7 +136,7 @@
 
 // [Optional]
 // Visualization of your logic for each ship.
-\TLV team_meow_ship_viz(/_top, _team_num)
+\TLV team_bogus1_viz(/_top, _team_num)
    m5+io_viz(/_top, _team_num)   /// Visualization of your IOs.
    \viz_js
       m5_DefaultTeamVizBoxAndWhere()
@@ -167,8 +153,8 @@
       },
 
 
-\TLV team_meow_ship(/_top)
-   m5+verilog_wrapper(/_top, meow_ship)
+\TLV team_bogus1(/_top)
+   m5+verilog_wrapper(/_top, bogus1)
 
 
 
@@ -183,7 +169,7 @@
    // Your team as the first player. Provide:
    //   - your GitHub ID, (as in your \TLV team_* macro, above)
    //   - your team name--anything you like (that isn't crude or disrespectful)
-   m5_team(meow_ship, MEOW)
+   m5_team(bogus1, MEOW)
    
    // Choose your opponent.
    // Note that inactive teams must be commented with "///", not "//", to prevent M5 macro evaluation.
