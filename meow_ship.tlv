@@ -25,7 +25,7 @@
 
 
    macro(team_bogus1_module, ['
-      module team_bogus2 (
+      module team_bogus1 (
          // Inputs:
          input logic clk, input logic reset,
          input logic signed [7:0] x [m5_SHIP_RANGE], input logic signed [7:0] y [m5_SHIP_RANGE],   // Positions of your ships, as affected by last cycle's acceleration.
