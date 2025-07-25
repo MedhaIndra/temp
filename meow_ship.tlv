@@ -26,7 +26,7 @@
 \SV
    // Include the showdown framework.
    m4_include_lib(https://raw.githubusercontent.com/rweda/showdown-2025-space-battle/a211a27da91c5dda590feac280f067096c96e721/showdown_lib.tlv)
-
+ macro(team_YOUR_GITHUB_ID_module,['
    module team_medha (
       // Inputs:
       input logic clk, input logic reset,
@@ -152,6 +152,7 @@
    end
 endgenerate
 endmodule
+'])
 
 
 // [Optional]
