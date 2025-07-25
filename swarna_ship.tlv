@@ -255,7 +255,7 @@ endgenerate
    // Instantiate the Showdown environment.
    m5+showdown(/top, /secret)
    
-   *passed = /secret$passed || *cyc_cnt > 100;   // Defines max cycles, up to ~600.
+   *passed = /secret$passed || *cyc_cnt > 600;   // Defines max cycles, up to ~600.
    *failed = /secret$failed;
 \SV
    endmodule
