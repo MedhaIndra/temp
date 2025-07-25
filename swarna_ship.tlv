@@ -243,11 +243,11 @@ endgenerate
    // Your team as the first player. Provide:
    //   - your GitHub ID, (as in your \TLV team_* macro, above)
    //   - your team name--anything you like (that isn't crude or disrespectful)
-   m5_team(YOUR_GITHUB_ID, YOUR_TEAM_NAME)
+   ///m5_team(YOUR_GITHUB_ID, YOUR_TEAM_NAME)
    
    // Choose your opponent.
    // Note that inactive teams must be commented with "///", not "//", to prevent M5 macro evaluation.
-   m5_team(random, Random)
+   ///m5_team(random, Random)
    ///m5_team(sitting_duck, Sitting Duck)
    ///m5_team(demo1, Test 1)
    
