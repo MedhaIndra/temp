@@ -24,8 +24,8 @@
                          /// Use "devel" or "demo". ("demo" will be used in competition.)
 
 
-   macro(team_medha_module, ['
-      module team_medha (
+   macro(team_meow_ship_module, ['
+      module team_meow_ship (
          // Inputs:
          input logic clk, input logic reset,
          input logic signed [7:0] x [m5_SHIP_RANGE], input logic signed [7:0] y [m5_SHIP_RANGE],   // Positions of your ships, as affected by last cycle's acceleration.
@@ -150,7 +150,7 @@
 
 // [Optional]
 // Visualization of your logic for each ship.
-\TLV team_medha_viz(/_top, _team_num)
+\TLV team_meow_ship_viz(/_top, _team_num)
    m5+io_viz(/_top, _team_num)   /// Visualization of your IOs.
    \viz_js
       m5_DefaultTeamVizBoxAndWhere()
@@ -167,8 +167,8 @@
       },
 
 
-\TLV team_medha(/_top)
-   m5+verilog_wrapper(/_top, medha)
+\TLV team_meow_ship(/_top)
+   m5+verilog_wrapper(/_top, meow_ship)
 
 
 
@@ -183,7 +183,7 @@
    // Your team as the first player. Provide:
    //   - your GitHub ID, (as in your \TLV team_* macro, above)
    //   - your team name--anything you like (that isn't crude or disrespectful)
-   m5_team(medha, MEOW)
+   m5_team(meow_ship, MEOW)
    
    // Choose your opponent.
    // Note that inactive teams must be commented with "///", not "//", to prevent M5 macro evaluation.
