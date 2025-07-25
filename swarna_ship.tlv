@@ -239,9 +239,7 @@
    // Your team as the first player. Provide:
    //   - your GitHub ID, (as in your \TLV team_* macro, above)
    //   - your team name--anything you like (that isn't crude or disrespectful)
-   m5_team(swarna_ship, SWARNA)
-
-   
+   m5_team(swarna_ship, swarna_ship)   
    
    // Choose your opponent.
    // Note that inactive teams must be commented with "///", not "//", to prevent M5 macro evaluation.
@@ -251,7 +249,7 @@
    
    
    // Instantiate the Showdown environment.
-   m5+showdown(/top, /secret)
+   //m5+showdown(/top, /secret)
    
    *passed = /secret$passed || *cyc_cnt > 600;   // Defines max cycles, up to ~600.
    *failed = /secret$failed;
