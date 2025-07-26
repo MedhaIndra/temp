@@ -12,7 +12,7 @@
    / Use the latest template for submission.
    /
    / Just 3 steps:
-   /   - Replace all bogus2 and YOUR_TEAM_NAME.
+   /   - Replace all bogus2and YOUR_TEAM_NAME.
    /   - Code your logic in the module below.
    /   - Submit by Sun. July 26, 11 PM IST/1:30 PM EDT.
    /
@@ -24,8 +24,8 @@
                          /// Use "devel" or "demo". ("demo" will be used in competition.)
 
 
-   macro(team_bogus2, ['
-      module team_bogus2 (
+   macro(team_bogus2_module, ['
+      module team_bogus2(
          // Inputs:
          input logic clk, input logic reset,
          input logic signed [7:0] x [m5_SHIP_RANGE], input logic signed [7:0] y [m5_SHIP_RANGE],   // Positions of your ships, as affected by last cycle's acceleration.
